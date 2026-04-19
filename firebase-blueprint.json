@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A product for pricing calculation",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "Unique identifier for the product" },
+        "cost": { "type": "number", "description": "Unit cost of the product" },
+        "desiredMargin": { "type": "number", "description": "Specific margin for this product (optional)" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["sku", "cost"]
+    },
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "Global settings for the user's pricing calculator",
+      "type": "object",
+      "properties": {
+        "globalMargin": { "type": "number", "description": "Default margin percentage" },
+        "channels": { 
+          "type": "array", 
+          "items": { "type": "object" },
+          "description": "Custom channel configurations" 
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserSettings",
+      "description": "User global settings"
+    },
+    "/users/{userId}/products/{productId}": {
+      "schema": "Product",
+      "description": "User archived products"
+    }
+  }
+}

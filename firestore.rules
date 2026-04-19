@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidProduct(data) {
+      return data.sku is string && data.sku.size() > 0 && data.sku.size() < 100 &&
+             data.cost is number && data.cost >= 0 &&
+             (!('desiredMargin' in data) || (data.desiredMargin is number && data.desiredMargin >= -1 && data.desiredMargin <= 1));
+    }
+    
+    function isValidSettings(data) {
+      return (!('globalMargin' in data) || (data.globalMargin is number)) &&
+             (!('channels' in data) || (data.channels is list));
+    }
+
+    // User Settings
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidSettings(request.resource.data);
+      
+      // Products Subcollection
+      match /products/{productId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidProduct(request.resource.data);
+      }
+    }
+  }
+}
